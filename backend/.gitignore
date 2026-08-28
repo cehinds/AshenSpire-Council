@@ -1,0 +1,8 @@
+data/*.sqlite3
+data/*.sqlite3-*
+data/audio/
+.venv/
+.uv-cache/
+.uv-python/
+__pycache__/
+.pytest_cache/
