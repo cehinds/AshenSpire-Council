@@ -24,3 +24,11 @@ Set `VITE_API_BASE_URL` only when the API is hosted somewhere else. Do not place
 - `POST /api/participants/{id}/journal` records an explicitly user-supplied journal note.
 
 Every represented participant is labeled as an AI role simulation. Journals display only recorded evidence or user-supplied notes; the UI never infers memories.
+
+## Installable static build
+
+The GitHub Pages build is an installable PWA. `../verify.ps1` builds the normal local-backend client first, then creates a separate `VITE_DEMO_MODE=true` Pages build and verifies its generated manifest, service worker, icons, install/update wiring, and static security boundary.
+
+The installed Pages build remains a backendless demonstration. Its participant data and labeled sample replies are bundled, and demo journals use browser-local storage. Live agent turns, microphone transcription, generated speech, SQLite persistence, and secret handling require the local FastAPI backend. Never add `OPENAI_API_KEY` or another secret to frontend source, `VITE_` variables, the web manifest, or service-worker caches.
+
+Installation and update instructions are in [docs/INSTALLABLE-APP.md](../docs/INSTALLABLE-APP.md).

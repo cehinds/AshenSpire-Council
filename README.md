@@ -37,7 +37,7 @@ The key is configured, but the selected API project currently reports `credit_ba
 .\verify.ps1
 ```
 
-This runs backend tests, frontend tests, the TypeScript check, and the production build.
+This runs backend tests, frontend tests, the TypeScript check, the normal local-backend build, and a separate static Pages build. It also verifies the PWA manifest, service worker, registration/update wiring, icon dimensions, and the static build's security boundary.
 
 ## Preview build
 
@@ -48,6 +48,12 @@ This runs backend tests, frontend tests, the TypeScript check, and the productio
 The script reruns all verification gates, packages the portable candidate, and writes a SHA-256 manifest under `artifacts/`. See [docs/PREVIEW.md](docs/PREVIEW.md) for exact contents and limitations.
 
 The GitHub Pages site is a deliberately backendless demonstration built from `dev`. It exposes no API key and labels static sample responses clearly; live reasoning, transcription, and assigned voices remain available only through the local backend.
+
+## Install the Pages app
+
+Open [https://cehinds.github.io/AshenSpire-Council/](https://cehinds.github.io/AshenSpire-Council/) in a current browser and use **Install AshenSpire Council** or the browser's **Install app** command. On iPhone or iPad, use Safari's **Share** → **Add to Home Screen** flow.
+
+The installed PWA is the backendless static preview: it provides the roster, labeled samples, and device-local demo journals. It does not provide live AI turns, transcription, generated voices, synchronization, or server persistence. See [docs/INSTALLABLE-APP.md](docs/INSTALLABLE-APP.md) for PC/mobile installation, offline behavior, updates, uninstall/reinstall, security boundaries, and the pointer-first deployment receipt.
 
 For a scan-to-phone GitHub CLI login flow, run `start-github-mobile-handoff.ps1`. It generates the QR locally and follows GitHub’s documented device authorization protocol; see [docs/GITHUB-MOBILE-HANDOFF.md](docs/GITHUB-MOBILE-HANDOFF.md).
 
@@ -68,5 +74,5 @@ Development follows `main` → `dev` → `feature/*` → `test` → `release` pr
 - `backend/` — FastAPI, Agents SDK, SQLite, transcription, and speech generation.
 - `frontend/` — React/Vite application and production build.
 - `data/participants.json` — stable participant and voice registry.
-- `docs/` — build brief, contracts, authority boundaries, voice map, and journal policy.
+- `docs/` — build brief, contracts, installable-app guide, authority boundaries, voice map, and journal policy.
 - `design-concept.png` — accepted visual specification.

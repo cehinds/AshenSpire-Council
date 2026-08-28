@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">AshenSpire Council</title>
+  <desc id="desc">A maskable gold spire and council ring on a midnight background.</desc>
+  <rect width="512" height="512" fill="#08131b" />
+  <circle cx="256" cy="268" r="116" fill="none" stroke="#b89555" stroke-width="24" />
+  <path d="M256 122 314 323h-35l-23 78-23-78h-35l58-201Z" fill="#e2c477" />
+  <path d="M216 295h80" fill="none" stroke="#08131b" stroke-linecap="round" stroke-width="20" />
+</svg>

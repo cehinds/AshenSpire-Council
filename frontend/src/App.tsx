@@ -4,20 +4,23 @@ import { addJournalEntry, createMeeting, getJournal, getParticipants, isDemoMode
 import { Inspector } from './components/Inspector'
 import { Mark } from './components/Mark'
 import { MeetingCenter } from './components/MeetingCenter'
+import { PwaInstallPrompt } from './components/PwaInstallPrompt'
 import { Roster } from './components/Roster'
 import { useAudioQueue } from './hooks/useAudioQueue'
 import { useRecorder } from './hooks/useRecorder'
+import { readMeetingSession, writeMeetingSession } from './pwaSession'
 import type { JournalEntry, Lifecycle, Meeting, Participant, TranscriptItem } from './types'
 
 export function App() {
   const demoMode = isDemoMode()
+  const [restoredSession] = useState(() => demoMode ? readMeetingSession() : undefined)
   const [participants, setParticipants] = useState<Participant[]>([])
-  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [selectedIds, setSelectedIds] = useState<string[]>(restoredSession?.meeting?.participant_ids ?? [])
   const [inspectedId, setInspectedId] = useState<string>()
   const [filter, setFilter] = useState<Lifecycle>('active')
   const [search, setSearch] = useState('')
-  const [meeting, setMeeting] = useState<Meeting>()
-  const [transcript, setTranscript] = useState<TranscriptItem[]>([])
+  const [meeting, setMeeting] = useState<Meeting | undefined>(restoredSession?.meeting)
+  const [transcript, setTranscript] = useState<TranscriptItem[]>(restoredSession?.transcript ?? [])
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -28,10 +31,14 @@ export function App() {
     void getParticipants().then((items) => {
       setParticipants(items)
       const active = items.filter((item) => item.lifecycle === 'active')
-      setSelectedIds(active.slice(0, 2).map((item) => item.id))
+      setSelectedIds((ids) => ids.length ? ids.filter((id) => items.some((item) => item.id === id)) : active.slice(0, 2).map((item) => item.id))
       setInspectedId(active[0]?.id ?? items[0]?.id)
     }).catch((cause: Error) => setError(cause.message)).finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    if (demoMode) writeMeetingSession(meeting, transcript)
+  }, [demoMode, meeting, transcript])
 
   const inspected = useMemo(() => participants.find((item) => item.id === inspectedId), [participants, inspectedId])
 
@@ -105,6 +112,7 @@ export function App() {
     </header>
     {demoMode && <div className="demo-banner" role="status">Static GitHub Pages preview — live AI reasoning, microphone transcription, and voice playback require the local backend.</div>}
     {error && <div className="error-banner" role="alert">{error}<button onClick={() => setError(undefined)} aria-label="Dismiss error">×</button></div>}
+    {demoMode ? <PwaInstallPrompt /> : null}
     <div className="workspace">
       <Roster participants={participants} selectedIds={selectedIds} inspectedId={inspectedId} filter={filter} search={search} loading={loading} onFilter={setFilter} onSearch={setSearch} onSelect={toggleParticipant} onInspect={(participant) => setInspectedId(participant.id)} />
       <MeetingCenter meeting={meeting} participants={participants} selectedCount={selectedIds.length} transcript={transcript} sending={sending} recording={recorder.isRecording} transcribing={recorder.isTranscribing} activeAudioId={audio.activeId} isPlaying={audio.isPlaying} onSend={send} onRecord={async () => { if (demoMode) { setError('Microphone transcription is unavailable in the static GitHub Pages preview.'); return } try { await recorder.toggle() } catch (cause) { setError(cause instanceof Error ? cause.message : 'Microphone access failed.') } }} onPlay={(entry) => entry.audio_url && audio.playOne({ id: entry.id, url: entry.audio_url })} onToggleActive={audio.toggleActive} />

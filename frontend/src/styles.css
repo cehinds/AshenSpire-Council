@@ -167,6 +167,14 @@ button:disabled { opacity: .48; cursor: not-allowed; }
 .memory-note > span { width: 22px; height: 22px; border: 2px solid #aca79f; border-radius: 999px; display: grid; place-items: center; font: 13px var(--serif); }
 .error-banner { position: fixed; top: 90px; left: 50%; transform: translateX(-50%); z-index: 30; max-width: min(600px, calc(100vw - 30px)); padding: 11px 14px; border: 1px solid rgba(224,108,100,.7); background: #28181a; color: #f2c2be; box-shadow: 0 8px 30px rgba(0,0,0,.35); display: flex; gap: 18px; align-items: center; }
 .error-banner button { border: 0; background: transparent; color: inherit; cursor: pointer; font-size: 21px; }
+.pwa-notice { position: fixed; right: 20px; bottom: 20px; z-index: 35; width: min(440px, calc(100vw - 40px)); min-height: 72px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 13px; padding: 13px 12px 13px 16px; border: 1px solid #4d626f; border-radius: 5px; background: rgba(11, 23, 32, .97); color: var(--steel); box-shadow: 0 13px 38px rgba(0, 0, 0, .45); }
+.pwa-notice > div { display: grid; gap: 3px; min-width: 0; }
+.pwa-notice strong { color: var(--parchment); font: 17px/1.25 var(--serif); font-weight: 400; }
+.pwa-notice span { color: #b6b8b6; font-size: 13px; line-height: 1.35; }
+.pwa-notice-action { min-height: 36px; padding: 0 13px; border: 1px solid var(--ember); border-radius: 4px; background: transparent; color: var(--parchment); cursor: pointer; font-size: 13px; white-space: nowrap; }
+.pwa-notice-action:hover { background: rgba(242, 139, 60, .09); }
+.pwa-notice-close { width: 32px; height: 32px; display: grid; place-items: center; border: 0; border-radius: 4px; background: transparent; color: #929a9d; cursor: pointer; }
+.pwa-notice-close:hover { background: rgba(255,255,255,.05); color: var(--parchment); }
 .spin { animation: spin 900ms linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -184,7 +192,7 @@ button:disabled { opacity: .48; cursor: not-allowed; }
 }
 
 @media (max-width: 760px) {
-  .app-header { height: 66px; grid-template-columns: 1fr auto; }
+  .app-header { height: 66px; grid-template-columns: 1fr auto; backdrop-filter: none; }
   .brand { font-size: 20px; padding-left: 12px; gap: 7px; }
   .brand-mark { width: 40px; height: 44px; font-size: 21px; }
   .app-header nav { position: fixed; z-index: 15; bottom: 0; left: 0; right: 0; height: 58px; background: #07121a; border-top: 1px solid var(--line); justify-content: space-around; }
@@ -217,6 +225,9 @@ button:disabled { opacity: .48; cursor: not-allowed; }
   .message-field small { display: none; }
   .send-button { width: 49px; height: 51px; padding: 0; justify-content: center; }
   .send-button span { display: none; }
+  .pwa-notice { right: 10px; bottom: 68px; width: calc(100vw - 20px); grid-template-columns: auto minmax(0, 1fr) auto; padding-left: 13px; }
+  .pwa-notice-action { grid-column: 2; justify-self: start; }
+  .pwa-notice-close { grid-column: 3; grid-row: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
