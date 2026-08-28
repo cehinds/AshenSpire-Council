@@ -49,6 +49,8 @@ The script reruns all verification gates, packages the portable candidate, and w
 
 The GitHub Pages site is a deliberately backendless demonstration built from `dev`. It exposes no API key and labels static sample responses clearly; live reasoning, transcription, and assigned voices remain available only through the local backend.
 
+For a scan-to-phone GitHub CLI login flow, run `start-github-mobile-handoff.ps1`. It generates the QR locally and follows GitHub’s documented device authorization protocol; see [docs/GITHUB-MOBILE-HANDOFF.md](docs/GITHUB-MOBILE-HANDOFF.md).
+
 ## Delivery model
 
 Development follows `main` → `dev` → `feature/*` → `test` → `release` promotion rules documented in [docs/BRANCHING.md](docs/BRANCHING.md). Current-state claims use the pointer-first receipt in [docs/EXECUTION-PACKET.md](docs/EXECUTION-PACKET.md); branch existence never implies promotion, deployment, or release approval.

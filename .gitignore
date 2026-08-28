@@ -15,3 +15,5 @@ frontend/*.tsbuildinfo
 frontend/vite.config.js
 frontend/vite.config.d.ts
 artifacts/.preview-staging/
+.npm-cache/
+tools/github-mobile-handoff/node_modules/

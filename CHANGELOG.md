@@ -6,3 +6,4 @@
 - Added local FastAPI, Agents SDK, transcription, speech, SQLite meetings, and factual journals.
 - Added React council interface, active/supporting/legacy roster filters, and persistent journal reload.
 - Added authority disclosures, quota-safe error handling, verification scripts, branch governance, and reproducible preview packaging.
+- Added a local QR-based GitHub mobile handoff that wraps GitHub CLI's documented device flow without exposing OAuth tokens.
