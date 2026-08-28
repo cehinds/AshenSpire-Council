@@ -11,14 +11,15 @@ const QRCode = require('qrcode-terminal/vendor/QRCode')
 const QRErrorCorrectLevel = require('qrcode-terminal/vendor/QRCode/QRErrorCorrectLevel')
 
 export const verificationUrl = 'https://github.com/login/device'
+export const passkeyLoginUrl = 'https://github.com/login?passkey=true'
 
 export function extractDeviceCode(output) {
   return output.match(/one-time code(?:\s*\(|:\s*)([A-Z0-9]{4}-[A-Z0-9]{4})\)?/i)?.[1]?.toUpperCase()
 }
 
-export async function writeQrSvg(outputPath) {
+export async function writeQrSvg(outputPath, targetUrl = verificationUrl) {
   const qr = new QRCode(-1, QRErrorCorrectLevel.L)
-  qr.addData(verificationUrl)
+  qr.addData(targetUrl)
   qr.make()
   const quiet = 4
   const scale = 10
@@ -35,9 +36,9 @@ export async function writeQrSvg(outputPath) {
   return outputPath
 }
 
-export async function writeQrPng(outputPath) {
+export async function writeQrPng(outputPath, targetUrl = verificationUrl) {
   await mkdir(path.dirname(outputPath), { recursive: true })
-  await QRCodeImage.toFile(outputPath, verificationUrl, {
+  await QRCodeImage.toFile(outputPath, targetUrl, {
     errorCorrectionLevel: 'L',
     margin: 4,
     width: 480,
@@ -70,13 +71,21 @@ export async function runMobileHandoff() {
       const code = extractDeviceCode(combined)
       if (code) {
         displayed = true
-        console.log('\nScan this QR with your phone:')
+        console.log('\nSTEP 1 — Sign the phone browser into GitHub with your registered passkey:')
+        qrcode.generate(passkeyLoginUrl, { small: true }, (qr) => console.log(qr))
+        console.log(`Passkey sign-in: ${passkeyLoginUrl}`)
+
+        console.log('\nSTEP 2 — After passkey sign-in succeeds, scan this QR to authorize GitHub CLI:')
         qrcode.generate(verificationUrl, { small: true }, (qr) => console.log(qr))
         const toolRoot = path.dirname(fileURLToPath(import.meta.url))
         const svgPath = path.resolve(toolRoot, '..', '..', 'artifacts', 'github-device-login-qr.svg')
         const pngPath = path.resolve(toolRoot, '..', '..', 'artifacts', 'github-device-login-qr.png')
+        const passkeySvgPath = path.resolve(toolRoot, '..', '..', 'artifacts', 'github-passkey-login-qr.svg')
+        const passkeyPngPath = path.resolve(toolRoot, '..', '..', 'artifacts', 'github-passkey-login-qr.png')
         void writeQrSvg(svgPath).then(() => console.log(`Scannable SVG: ${svgPath}`))
         void writeQrPng(pngPath).then(() => console.log(`Scannable PNG: ${pngPath}`))
+        void writeQrSvg(passkeySvgPath, passkeyLoginUrl).then(() => console.log(`Passkey SVG: ${passkeySvgPath}`))
+        void writeQrPng(passkeyPngPath, passkeyLoginUrl).then(() => console.log(`Passkey PNG: ${passkeyPngPath}`))
         console.log(`GitHub device code: ${code}`)
         console.log(`Fallback link: ${verificationUrl}`)
         console.log('GitHub requires the code to be entered within 15 minutes. This tool will keep polling locally.')

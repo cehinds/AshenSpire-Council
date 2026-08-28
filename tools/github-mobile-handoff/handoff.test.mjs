@@ -3,7 +3,7 @@ import test from 'node:test'
 import { readFile, unlink } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import { extractDeviceCode, verificationUrl, writeQrPng, writeQrSvg } from './handoff.mjs'
+import { extractDeviceCode, passkeyLoginUrl, verificationUrl, writeQrPng, writeQrSvg } from './handoff.mjs'
 
 test('extracts a GitHub CLI device code', () => {
   assert.equal(extractDeviceCode('First copy your one-time code: 9abc-7d2e'), '9ABC-7D2E')
@@ -16,6 +16,7 @@ test('does not accept malformed codes', () => {
 
 test('uses GitHub official verification URI', () => {
   assert.equal(verificationUrl, 'https://github.com/login/device')
+  assert.equal(passkeyLoginUrl, 'https://github.com/login?passkey=true')
 })
 
 test('renders the verification URI as a local SVG', async () => {
@@ -34,6 +35,17 @@ test('renders the verification URI as a local PNG', async () => {
   const output = path.join(tmpdir(), `github-device-login-${process.pid}.png`)
   try {
     const result = await writeQrPng(output)
+    const png = await readFile(result)
+    assert.deepEqual([...png.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10])
+  } finally {
+    await unlink(output).catch(() => {})
+  }
+})
+
+test('renders the passkey-first sign-in URI as a local PNG', async () => {
+  const output = path.join(tmpdir(), `github-passkey-login-${process.pid}.png`)
+  try {
+    const result = await writeQrPng(output, passkeyLoginUrl)
     const png = await readFile(result)
     assert.deepEqual([...png.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10])
   } finally {
