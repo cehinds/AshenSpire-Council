@@ -6,6 +6,13 @@ $backendPath = Join-Path $appRoot 'backend'
 $frontendDist = Join-Path $frontendPath 'dist\index.html'
 $env:UV_CACHE_DIR = Join-Path $backendPath '.uv-cache'
 
+if (-not $env:OPENAI_API_KEY -and -not $env:ASHENSPIRE_ITM3_ENV_FILE -and $env:OneDrive) {
+    $itm3EnvCandidate = Join-Path $env:OneDrive 'Documents\ChatGPT\AshennSpire\.env.local'
+    if (Test-Path -LiteralPath $itm3EnvCandidate -PathType Leaf) {
+        $env:ASHENSPIRE_ITM3_ENV_FILE = $itm3EnvCandidate
+    }
+}
+
 if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
     throw 'npm is required to build the AshenSpire Council frontend.'
 }

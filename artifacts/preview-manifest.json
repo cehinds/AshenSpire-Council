@@ -1,0 +1,8 @@
+{
+  "artifact": "ashenspire-council-preview-r1.zip",
+  "version": "0.1.0-preview.1",
+  "created_utc": "2026-08-28T03:16:52.4788666Z",
+  "sha256": "834EF449E21D3A13C347D7578EB62918A7B1F86DD5DAF2287472C2D5F4B60CC5",
+  "verification": "verify.ps1 passed before packaging",
+  "release_status": "PREVIEW ONLY / NOT RELEASED"
+}

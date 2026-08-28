@@ -11,9 +11,7 @@ DEFAULT_PARTICIPANTS_PATH = COUNCIL_DIR / "data" / "participants.json"
 DEFAULT_DATABASE_PATH = BACKEND_DIR / "data" / "council.sqlite3"
 DEFAULT_AUDIO_DIR = BACKEND_DIR / "data" / "audio"
 DEFAULT_FRONTEND_DIST = COUNCIL_DIR / "frontend" / "dist"
-DEFAULT_ITM3_ENV_PATH = Path(
-    r"C:\Users\const\OneDrive\Documents\ChatGPT\AshennSpire\.env.local"
-)
+DEFAULT_LOCAL_ENV_PATH = BACKEND_DIR / ".env.local"
 
 
 def _load_env_value(path: Path, name: str) -> str | None:
@@ -39,7 +37,7 @@ def resolve_openai_api_key() -> str | None:
         return key
 
     configured_path = os.getenv("ASHENSPIRE_ITM3_ENV_FILE")
-    env_path = Path(configured_path) if configured_path else DEFAULT_ITM3_ENV_PATH
+    env_path = Path(configured_path) if configured_path else DEFAULT_LOCAL_ENV_PATH
     return _load_env_value(env_path, "OPENAI_API_KEY")
 
 

@@ -27,7 +27,7 @@ From this directory:
 
 Then open [http://127.0.0.1:8421](http://127.0.0.1:8421). Keep the terminal open while using the app; press `Ctrl+C` to stop it.
 
-The backend loads `OPENAI_API_KEY` from the environment first. On this workstation it can also read the approved IT Manager III workspace `.env.local` file. The key is never exposed to browser code.
+The backend loads `OPENAI_API_KEY` from the environment first, then an optional file named by `ASHENSPIRE_ITM3_ENV_FILE`, then `backend/.env.local`. The local launcher can discover the approved IT Manager III workspace file on this workstation. The key is never exposed to browser code or committed.
 
 The key is configured, but the selected API project currently reports `credit_balance_exhausted`. Add API credits at [OpenAI billing](https://platform.openai.com/settings/organization/billing) before generated agent speech will run. ChatGPT subscriptions and API billing are separate.
 
@@ -38,6 +38,18 @@ The key is configured, but the selected API project currently reports `credit_ba
 ```
 
 This runs backend tests, frontend tests, the TypeScript check, and the production build.
+
+## Preview build
+
+```powershell
+.\build-preview.ps1
+```
+
+The script reruns all verification gates, packages the portable candidate, and writes a SHA-256 manifest under `artifacts/`. See [docs/PREVIEW.md](docs/PREVIEW.md) for exact contents and limitations.
+
+## Delivery model
+
+Development follows `main` → `dev` → `feature/*` → `test` → `release` promotion rules documented in [docs/BRANCHING.md](docs/BRANCHING.md). Current-state claims use the pointer-first receipt in [docs/EXECUTION-PACKET.md](docs/EXECUTION-PACKET.md); branch existence never implies promotion, deployment, or release approval.
 
 ## Data boundaries
 
