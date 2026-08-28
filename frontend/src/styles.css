@@ -61,6 +61,8 @@ button:disabled { opacity: .48; cursor: not-allowed; }
 .icon-button.compact { width: 28px; height: 28px; display: inline-grid; }
 
 .workspace { height: calc(100vh - 80px); display: grid; grid-template-columns: minmax(285px, 356px) minmax(470px, 1fr) minmax(330px, 400px); }
+.demo-banner { min-height: 36px; display: grid; place-items: center; padding: 7px 16px; border-bottom: 1px solid var(--ember-dark); background: #22170f; color: #e8c9a9; font-size: 13px; text-align: center; }
+.demo-mode .workspace { height: calc(100vh - 116px); }
 .panel { min-width: 0; background: rgba(7, 18, 26, .68); }
 .roster { border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 25px 12px 0; overflow: hidden; }
 .inspector { border-left: 1px solid var(--line); padding: 25px 22px 0; overflow-y: auto; display: flex; flex-direction: column; }
@@ -175,6 +177,7 @@ button:disabled { opacity: .48; cursor: not-allowed; }
   .app-header nav { gap: 5px; }
   .app-header nav a { min-width: 98px; }
   .workspace { height: auto; min-height: calc(100vh - 80px); grid-template-columns: 300px minmax(0, 1fr); grid-template-areas: "roster meeting" "inspector meeting"; }
+  .demo-mode .workspace { height: auto; min-height: calc(100vh - 116px); }
   .roster { grid-area: roster; max-height: 58vh; }
   .meeting { grid-area: meeting; height: calc(100vh - 80px); position: sticky; top: 80px; }
   .inspector { grid-area: inspector; border-left: 0; border-right: 1px solid var(--line); max-height: 70vh; }

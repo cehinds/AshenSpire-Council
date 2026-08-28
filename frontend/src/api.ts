@@ -1,6 +1,12 @@
 import type { JournalEntry, Meeting, Participant, TranscriptItem, TurnResponse } from './types'
+import registry from '../../data/participants.json'
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true'
+const demoMeetings = new Map<string, string[]>()
+let demoParticipants: Participant[] = []
+
+export function isDemoMode() { return DEMO_MODE }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, init)
@@ -33,17 +39,20 @@ export function normalizeParticipant(raw: unknown): Participant {
   const rawJournal = item.journal ?? item.journal_entries
   const rawLifecycle = text(item.lifecycle, item.status)
   const lifecycle = rawLifecycle === 'legacy' || item.active === false ? 'legacy' : rawLifecycle === 'supporting' ? 'supporting' : 'active'
+  const authority = item.authority as Record<string, unknown> | string | undefined
+  const may = typeof authority === 'object' && Array.isArray(authority?.may) ? authority.may.map(String) : []
+  const mustNot = typeof authority === 'object' && Array.isArray(authority?.must_not) ? authority.must_not.map(String) : []
   return {
     id: text(item.id, item.stable_id, item.participant_id) ?? crypto.randomUUID(),
-    name: text(item.name, item.display_name) ?? 'Unnamed participant',
+    name: text(item.name, item.display_name, item.personal_name) ?? 'Unnamed participant',
     initials: text(item.initials) ?? text(item.name, item.display_name)?.split(' ').map((part) => part[0]).join('').slice(0, 2) ?? 'AS',
     role: text(item.role, item.title) ?? 'AshenSpire team member',
     team: text(item.team, item.team_name) ?? 'AshenSpire',
-    voice_id: typeof voice === 'string' ? voice : text(item.voice_id, voice?.id, voice?.name) ?? 'alloy',
-    voice_label: typeof voice === 'string' ? voice : text(voice?.label, voice?.id, voice?.name) ?? 'alloy',
+    voice_id: typeof voice === 'string' ? voice : text(item.voice_id, voice?.id, voice?.name, voice?.api_voice_id) ?? 'alloy',
+    voice_label: typeof voice === 'string' ? voice : text(voice?.label, voice?.id, voice?.name, voice?.voice_profile_label) ?? 'alloy',
     lifecycle,
-    authority_boundary: text(item.authority, item.authority_boundary, item.scope) ?? 'No authority boundary recorded.',
-    boundaries: Array.isArray(item.boundaries) ? item.boundaries.map(String) : [],
+    authority_boundary: text(item.authority, item.authority_boundary, item.scope) ?? (may.join(' ') || 'No authority boundary recorded.'),
+    boundaries: [...(Array.isArray(item.boundaries) ? item.boundaries.map(String) : []), ...mustNot],
     traits: Array.isArray(rawTraits) ? rawTraits.map(String) : text(rawTraits)?.split(',').map((part) => part.trim()).filter(Boolean) ?? [],
     journal: Array.isArray(rawJournal) ? rawJournal.map(normalizeJournal) : [],
     ai_disclosure: text(item.ai_disclosure) ?? 'AI role simulation — not a human participant.',
@@ -68,12 +77,22 @@ function normalizeTranscript(raw: unknown, index: number): TranscriptItem {
 }
 
 export async function getParticipants(): Promise<Participant[]> {
+  if (DEMO_MODE) {
+    const source = (registry as { participants: unknown[] }).participants
+    demoParticipants = source.map(normalizeParticipant)
+    return demoParticipants
+  }
   const data = await request<unknown>('/api/participants')
   const list = Array.isArray(data) ? data : ((data as { participants?: unknown[] }).participants ?? [])
   return list.map(normalizeParticipant)
 }
 
 export async function createMeeting(participantIds: string[]): Promise<Meeting> {
+  if (DEMO_MODE) {
+    const id = `demo-${crypto.randomUUID()}`
+    demoMeetings.set(id, participantIds)
+    return { id, title: 'GitHub Pages preview', agenda: 'Static role and interface demonstration', participant_ids: participantIds, transcript: [] }
+  }
   const raw = await request<Record<string, unknown>>('/api/meetings', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -90,6 +109,21 @@ export async function createMeeting(participantIds: string[]): Promise<Meeting> 
 }
 
 export async function submitTurn(meetingId: string, message: string): Promise<TurnResponse> {
+  if (DEMO_MODE) {
+    const now = new Date().toISOString()
+    const responses = (demoMeetings.get(meetingId) ?? []).map((participantId, index) => {
+      const participant = demoParticipants.find((item) => item.id === participantId)
+      return {
+        id: `demo-response-${Date.now()}-${index}`,
+        speaker: participant?.name ?? 'Council participant',
+        participant_id: participantId,
+        text: `Static preview response from ${participant?.role ?? 'this role'}. Live reasoning, transcription, and assigned voice playback require the local backend. Your prompt was recorded only in this browser session.`,
+        created_at: now,
+        kind: 'agent' as const,
+      }
+    })
+    return { meeting_id: meetingId, responses }
+  }
   const raw = await request<Record<string, unknown>>(`/api/meetings/${encodeURIComponent(meetingId)}/turn`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -100,6 +134,7 @@ export async function submitTurn(meetingId: string, message: string): Promise<Tu
 }
 
 export async function transcribeAudio(blob: Blob): Promise<string> {
+  if (DEMO_MODE) throw new Error('Microphone transcription is unavailable in the static GitHub Pages preview.')
   const form = new FormData()
   form.append('file', blob, `recording.${blob.type.includes('webm') ? 'webm' : 'wav'}`)
   const raw = await request<Record<string, unknown>>('/api/transcribe', { method: 'POST', body: form })
@@ -107,6 +142,12 @@ export async function transcribeAudio(blob: Blob): Promise<string> {
 }
 
 export async function addJournalEntry(participantId: string, content: string): Promise<JournalEntry> {
+  if (DEMO_MODE) {
+    const entry: JournalEntry = { id: crypto.randomUUID(), participant_id: participantId, content, created_at: new Date().toISOString(), source_type: 'user_supplied_fact', evidence: 'Stored only in this browser for the static preview.' }
+    const entries = await getJournal(participantId)
+    localStorage.setItem(`ashenspire-demo-journal:${participantId}`, JSON.stringify([entry, ...entries]))
+    return entry
+  }
   const raw = await request<Record<string, unknown>>(`/api/participants/${encodeURIComponent(participantId)}/journal`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -116,6 +157,10 @@ export async function addJournalEntry(participantId: string, content: string): P
 }
 
 export async function getJournal(participantId: string): Promise<JournalEntry[]> {
+  if (DEMO_MODE) {
+    try { return JSON.parse(localStorage.getItem(`ashenspire-demo-journal:${participantId}`) ?? '[]') as JournalEntry[] }
+    catch { return [] }
+  }
   const raw = await request<Record<string, unknown>>(`/api/participants/${encodeURIComponent(participantId)}/journal`)
   const entries = Array.isArray(raw.entries) ? raw.entries : []
   return entries.map(normalizeJournal).reverse()

@@ -47,6 +47,8 @@ This runs backend tests, frontend tests, the TypeScript check, and the productio
 
 The script reruns all verification gates, packages the portable candidate, and writes a SHA-256 manifest under `artifacts/`. See [docs/PREVIEW.md](docs/PREVIEW.md) for exact contents and limitations.
 
+The GitHub Pages site is a deliberately backendless demonstration built from `dev`. It exposes no API key and labels static sample responses clearly; live reasoning, transcription, and assigned voices remain available only through the local backend.
+
 ## Delivery model
 
 Development follows `main` → `dev` → `feature/*` → `test` → `release` promotion rules documented in [docs/BRANCHING.md](docs/BRANCHING.md). Current-state claims use the pointer-first receipt in [docs/EXECUTION-PACKET.md](docs/EXECUTION-PACKET.md); branch existence never implies promotion, deployment, or release approval.
