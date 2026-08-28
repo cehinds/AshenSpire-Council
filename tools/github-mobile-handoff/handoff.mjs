@@ -1,11 +1,49 @@
 import { spawn } from 'node:child_process'
-import { pathToFileURL } from 'node:url'
+import { mkdir, writeFile } from 'node:fs/promises'
+import path from 'node:path'
+import { createRequire } from 'node:module'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import qrcode from 'qrcode-terminal'
+import QRCodeImage from 'qrcode'
+
+const require = createRequire(import.meta.url)
+const QRCode = require('qrcode-terminal/vendor/QRCode')
+const QRErrorCorrectLevel = require('qrcode-terminal/vendor/QRCode/QRErrorCorrectLevel')
 
 export const verificationUrl = 'https://github.com/login/device'
 
 export function extractDeviceCode(output) {
   return output.match(/one-time code(?:\s*\(|:\s*)([A-Z0-9]{4}-[A-Z0-9]{4})\)?/i)?.[1]?.toUpperCase()
+}
+
+export async function writeQrSvg(outputPath) {
+  const qr = new QRCode(-1, QRErrorCorrectLevel.L)
+  qr.addData(verificationUrl)
+  qr.make()
+  const quiet = 4
+  const scale = 10
+  const size = (qr.getModuleCount() + quiet * 2) * scale
+  const cells = []
+  for (let row = 0; row < qr.getModuleCount(); row += 1) {
+    for (let col = 0; col < qr.getModuleCount(); col += 1) {
+      if (qr.isDark(row, col)) cells.push(`<rect x="${(col + quiet) * scale}" y="${(row + quiet) * scale}" width="${scale}" height="${scale}"/>`)
+    }
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><rect width="100%" height="100%" fill="white"/><g fill="black">${cells.join('')}</g></svg>`
+  await mkdir(path.dirname(outputPath), { recursive: true })
+  await writeFile(outputPath, svg, 'utf8')
+  return outputPath
+}
+
+export async function writeQrPng(outputPath) {
+  await mkdir(path.dirname(outputPath), { recursive: true })
+  await QRCodeImage.toFile(outputPath, verificationUrl, {
+    errorCorrectionLevel: 'L',
+    margin: 4,
+    width: 480,
+    color: { dark: '#000000', light: '#ffffff' },
+  })
+  return outputPath
 }
 
 export async function runMobileHandoff() {
@@ -34,6 +72,11 @@ export async function runMobileHandoff() {
         displayed = true
         console.log('\nScan this QR with your phone:')
         qrcode.generate(verificationUrl, { small: true }, (qr) => console.log(qr))
+        const toolRoot = path.dirname(fileURLToPath(import.meta.url))
+        const svgPath = path.resolve(toolRoot, '..', '..', 'artifacts', 'github-device-login-qr.svg')
+        const pngPath = path.resolve(toolRoot, '..', '..', 'artifacts', 'github-device-login-qr.png')
+        void writeQrSvg(svgPath).then(() => console.log(`Scannable SVG: ${svgPath}`))
+        void writeQrPng(pngPath).then(() => console.log(`Scannable PNG: ${pngPath}`))
         console.log(`GitHub device code: ${code}`)
         console.log(`Fallback link: ${verificationUrl}`)
         console.log('GitHub requires the code to be entered within 15 minutes. This tool will keep polling locally.')
